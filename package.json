@@ -1,0 +1,22 @@
+{
+  "name": "countdown-simulator",
+  "version": "1.0.0",
+  "description": "Simulates Countdown letter stack management with duplicate extraction",
+  "main": "countdown-simulator.js",
+  "scripts": {
+    "start": "node countdown-simulator.js",
+    "test": "node countdown-simulator.js test",
+    "simulate": "node countdown-simulator.js simulate",
+    "analyze": "node countdown-simulator.js analyze"
+  },
+  "keywords": ["countdown", "simulation", "letters", "game"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "an-array-of-english-words": "^2.0.0"
+  },
+  "devDependencies": {},
+  "engines": {
+    "node": ">=14.0.0"
+  }
+} 
