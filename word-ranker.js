@@ -3,17 +3,14 @@
 const words = require('an-array-of-english-words');
 const { 
   COUNTDOWN_DISTRIBUTION, 
-  analyzeManagedStackFrequencies,
-  createLetterStack,
-  shuffleArray,
-  extractConsecutiveDuplicates
+  analyzeManagedStackFrequencies
 } = require('./countdown-simulator');
 
 /**
- * Calculates the probability of forming a word by simulating draws from the managed stack
- * This properly accounts for the fact that duplicates are moved to the bottom
+ * Calculates the probability of forming a word using the managed stack probabilities
+ * Uses analytical calculation instead of simulation for speed
  */
-function calculateWordProbability(word, vowelProbs, consonantProbs, iterations = 1000) {
+function calculateWordProbability(word, vowelProbs, consonantProbs) {
   const upperWord = word.toUpperCase();
   const letterCounts = {};
   
@@ -22,87 +19,39 @@ function calculateWordProbability(word, vowelProbs, consonantProbs, iterations =
     letterCounts[letter] = (letterCounts[letter] || 0) + 1;
   }
   
-  // Simulate drawing the required letters from the managed stack
-  let successCount = 0;
+  // Calculate probability analytically
+  let probability = 1;
   
-  for (let i = 0; i < iterations; i++) {
-    // Create a simulated managed stack for this iteration
-    const vowelStack = createManagedStack('vowels', vowelProbs);
-    const consonantStack = createManagedStack('consonants', consonantProbs);
+  for (const [letter, count] of Object.entries(letterCounts)) {
+    let letterProb;
     
-    // Try to draw the required letters
-    const requiredLetters = { ...letterCounts };
-    let canFormWord = true;
-    
-    // Draw vowels first
-    for (const [letter, count] of Object.entries(requiredLetters)) {
-      if ('AEIOU'.includes(letter)) {
-        const available = vowelStack.filter(l => l === letter).length;
-        if (available < count) {
-          canFormWord = false;
-          break;
-        }
-        // Remove the drawn letters
-        for (let j = 0; j < count; j++) {
-          const index = vowelStack.indexOf(letter);
-          if (index !== -1) {
-            vowelStack.splice(index, 1);
-          }
-        }
-      }
+    // Get the managed probability for this letter
+    if ('AEIOU'.includes(letter)) {
+      letterProb = vowelProbs[letter] || 0;
+    } else {
+      letterProb = consonantProbs[letter] || 0;
     }
     
-    // Draw consonants
-    if (canFormWord) {
-      for (const [letter, count] of Object.entries(requiredLetters)) {
-        if (!'AEIOU'.includes(letter)) {
-          const available = consonantStack.filter(l => l === letter).length;
-          if (available < count) {
-            canFormWord = false;
-            break;
-          }
-          // Remove the drawn letters
-          for (let j = 0; j < count; j++) {
-            const index = consonantStack.indexOf(letter);
-            if (index !== -1) {
-              consonantStack.splice(index, 1);
-            }
-          }
-        }
-      }
+    if (letterProb === 0) {
+      probability = 0;
+      break;
     }
     
-    if (canFormWord) {
-      successCount++;
+    // For single occurrence, use the managed probability
+    if (count === 1) {
+      probability *= letterProb;
+    } else {
+      // For duplicates, apply penalty since they're moved to bottom of stack
+      // The more duplicates, the lower the probability
+      const duplicatePenalty = Math.pow(0.1, count - 1); // Aggressive penalty for duplicates
+      probability *= letterProb * duplicatePenalty;
     }
   }
   
-  return successCount / iterations;
+  return probability;
 }
 
-/**
- * Creates a simulated managed stack based on the probabilities
- */
-function createManagedStack(type, probs) {
-  const stack = [];
-  const totalCards = type === 'vowels' ? 42 : 56;
-  
-  // Create a stack that matches the managed probabilities
-  for (const [letter, prob] of Object.entries(probs)) {
-    const count = Math.round(prob * totalCards);
-    for (let i = 0; i < count; i++) {
-      stack.push(letter);
-    }
-  }
-  
-  // Shuffle the stack
-  for (let i = stack.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [stack[i], stack[j]] = [stack[j], stack[i]];
-  }
-  
-  return stack;
-}
+
 
 /**
  * Filters words to only include valid Countdown words (≤9 letters, no special chars)
@@ -231,13 +180,14 @@ function main() {
       const filtered = filterCountdownWords(testWords);
       console.log('Filtered words:', filtered);
       
-      // Test probability calculation
-      const vowelProbs = { A: 0.2, E: 0.3, I: 0.2, O: 0.2, U: 0.1 };
-      const consonantProbs = { T: 0.1, G: 0.05, R: 0.1, N: 0.1 };
+      // Get actual managed stack probabilities
+      console.log('\nCalculating managed stack probabilities...');
+      const testVowelAnalysis = analyzeManagedStackFrequencies('vowels', 9, 1000);
+      const testConsonantAnalysis = analyzeManagedStackFrequencies('consonants', 9, 1000);
       
-      console.log('\nTesting probability calculation:');
+      console.log('\nTesting probability calculation with actual managed probabilities:');
       testWords.forEach(word => {
-        const prob = calculateWordProbability(word, vowelProbs, consonantProbs);
+        const prob = calculateWordProbability(word, testVowelAnalysis.probabilities, testConsonantAnalysis.probabilities);
         console.log(`${word}: ${prob.toExponential(3)}`);
       });
       break;

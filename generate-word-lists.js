@@ -9,7 +9,8 @@ const {
 } = require('./countdown-simulator');
 const { 
   filterCountdownWords, 
-  rankWordsByProbability 
+  rankWordsByProbability,
+  calculateWordProbability
 } = require('./word-ranker');
 
 /**
