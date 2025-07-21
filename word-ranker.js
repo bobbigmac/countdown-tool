@@ -41,9 +41,9 @@ function calculateWordProbability(word, vowelProbs, consonantProbs) {
     if (count === 1) {
       probability *= letterProb;
     } else {
-      // For duplicates, apply penalty since they're moved to bottom of stack
-      // The more duplicates, the lower the probability
-      const duplicatePenalty = Math.pow(0.1, count - 1); // Aggressive penalty for duplicates
+      // ALL duplicates are heavily penalized since consecutive duplicates 
+      // (vowel or consonant) get moved to the bottom of the stack
+      const duplicatePenalty = Math.pow(0.05, count - 1); // Very aggressive penalty for ANY duplicates
       probability *= letterProb * duplicatePenalty;
     }
   }
