@@ -21,11 +21,13 @@ const eightLetterWords = sortWordsForCountdown(
 
 let gridCells = [];
 let animationInterval;
+let progressSteps = 0; // Track how many animation steps have occurred
+let totalWords = eightLetterWords.length;
 
 // Calculate optimal grid dimensions based on viewport
 function calculateGridDimensions() {
     const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
+    const viewportHeight = window.innerHeight - 30; // Account for progress bar
     
     // Estimate word dimensions (rough calculation based on font size)
     const estimatedWordWidth = 120; // pixels for 8-letter word
@@ -50,6 +52,20 @@ function calculateStartingIndex(row, col, totalRows, totalCols) {
     // Map to word array index
     const startIndex = Math.floor(combinedPosition * eightLetterWords.length);
     return startIndex % eightLetterWords.length;
+}
+
+// Update progress bar
+function updateProgressBar() {
+    const progressFill = document.getElementById('progressFill');
+    const progressText = document.getElementById('progressText');
+    
+    const wordsPerStep = gridCells.length; // Number of words shown simultaneously
+    const totalWordsShown = progressSteps * wordsPerStep;
+    const progressPercentage = ((totalWordsShown % totalWords) / totalWords) * 100;
+    const currentCyclePosition = totalWordsShown % totalWords;
+    
+    progressFill.style.width = `${progressPercentage}%`;
+    progressText.textContent = `${currentCyclePosition} / ${totalWords} words shown`;
 }
 
 // Create grid cells
@@ -96,6 +112,10 @@ function updateAllWords() {
         cellData.currentIndex = (cellData.currentIndex + 1) % eightLetterWords.length;
         cellData.element.textContent = eightLetterWords[cellData.currentIndex].toUpperCase();
     });
+    
+    // Update progress tracking
+    progressSteps++;
+    updateProgressBar();
 }
 
 // Handle window resize
@@ -107,8 +127,12 @@ function handleResize() {
 
 // Start the animation
 function startAnimation() {
-    // Update every 150ms as specified
-    animationInterval = setInterval(updateAllWords, 100);
+    // Reset progress when starting
+    progressSteps = 0;
+    updateProgressBar();
+    
+    // Update every 100ms as specified
+    animationInterval = setInterval(updateAllWords, 150);
 }
 
 // Initialize the application
@@ -117,6 +141,9 @@ function init() {
     
     // Hide loading message
     document.getElementById('loading').style.display = 'none';
+    
+    // Initialize progress bar
+    updateProgressBar();
     
     // Create initial grid
     createGrid();
