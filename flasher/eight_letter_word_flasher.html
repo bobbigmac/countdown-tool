@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>8-Letter Word Flasher</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+            font-family: 'Courier New', Courier, monospace;
+        }
+        #wordDisplay {
+            font-size: 48px;
+            font-weight: bold;
+            text-transform: uppercase;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div id="wordDisplay"></div>
+
+    <script>
+        // Sample list of 8-letter words (for demonstration; to be replaced by fetched dictionary)
+        let eightLetterWords = [
+            "absolute",
+            "academic",
+            "accident",
+            "accurate",
+            "actively",
+            "actually",
+            "addition",
+            "adequate",
+            "advanced",
+            "aircraft",
+            "analysis",
+            "announce",
+            "apparent",
+            "approach",
+            "argument",
+            "artistic",
+            "assembly",
+            "attitude",
+            "audience",
+            "awarding"
+        ];
+
+        // Function to count vowels in a word
+        function countVowels(word) {
+            return (word.match(/[aeiou]/gi) || []).length;
+        }
+
+        // Function to sort words: prioritize vowel count (descending), then consonants alphabetically
+        function sortWordsForCountdown(words) {
+            return words.sort((a, b) => {
+                const vowelDiff = countVowels(b) - countVowels(a);
+                if (vowelDiff !== 0) return vowelDiff; // Sort by vowel count (descending)
+                return a.localeCompare(b); // Then alphabetically
+            });
+        }
+
+        // Function to fetch and filter 8-letter words from a dictionary file
+        async function loadDictionary() {
+            try {
+                // Example URL for a dictionary file (replace with actual dictionary source)
+                const response = await fetch('https://raw.githubusercontent.com/dwyl/english-words/master/words_alpha.txt');
+                const text = await response.text();
+                const words = text.split('\n').map(word => word.trim().toLowerCase());
+                eightLetterWords = words.filter(word => word.length === 8 && /^[a-z]{8}$/.test(word));
+                eightLetterWords = sortWordsForCountdown(eightLetterWords);
+                showNextWord(); // Show first word after loading
+            } catch (error) {
+                console.error('Error loading dictionary:', error);
+                // Fallback to sample list, sorted
+                eightLetterWords = sortWordsForCountdown(eightLetterWords);
+                showNextWord();
+            }
+        }
+
+        let currentIndex = 0;
+        const wordDisplay = document.getElementById('wordDisplay');
+
+        function showNextWord() {
+            if (currentIndex >= eightLetterWords.length) {
+                currentIndex = 0; // Loop back to start
+            }
+            wordDisplay.textContent = eightLetterWords[currentIndex].toUpperCase();
+            currentIndex++;
+        }
+
+        // Load dictionary and start
+        loadDictionary();
+
+        // Change word every 500ms (0.5 seconds)
+        setInterval(showNextWord, 500);
+    </script>
+</body>
+</html>

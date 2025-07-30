@@ -7,7 +7,10 @@
     "start": "node countdown-simulator.js",
     "test": "node countdown-simulator.js test",
     "simulate": "node countdown-simulator.js simulate",
-    "analyze": "node countdown-simulator.js analyze"
+    "analyze": "node countdown-simulator.js analyze",
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
   },
   "keywords": ["countdown", "simulation", "letters", "game"],
   "author": "",
@@ -15,7 +18,9 @@
   "dependencies": {
     "an-array-of-english-words": "^2.0.0"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "vite": "^5.0.0"
+  },
   "engines": {
     "node": ">=14.0.0"
   }
